@@ -33,27 +33,33 @@ expandable session card, child-task cards, and machine-wide daily totals.
   toggle off before `/reload` never strands a pane. Dead panes clear the
   state instead. Child (delegated) sessions never touch the pane.
 
-## Use
+## Install
+
+No checkout needed — the installer clones to `$LEDGER_CLONE_DIR`
+(default `/tmp/omo-herdr-ledger`, reused across runs) and syncs the
+pane files into `$OMO_AGENT_DIR` (default `~/.omo/agent`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/markusreil/omo-herdr-ledger/main/install.sh | bash
+```
+
+Preview only:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/markusreil/omo-herdr-ledger/main/install.sh | bash -s -- --dry-run
+```
+
+Overrides: `LEDGER_CLONE_DIR` (where to clone), `LEDGER_BRANCH`
+(default `main`). Extra args are forwarded to `bin/sync.sh`.
+
+Then `/reload` in omo and `/ledger` to toggle.
+
+## Use (from a checkout)
 
 ```bash
 ./bin/sync.sh --dry-run
 ./bin/sync.sh
 ```
-
-Then `/reload` in omo and `/ledger` to toggle.
-
-## Sync
-
-This repo owns its `~/.omo` footprint and keeps it in sync with
-chezmoi (`~/.local/share/chezmoi`). The pane ships to `~/.omo` as
-chezmoi externals (see `.chezmoiexternal.toml` in the chezmoi source:
-raw-file entries tracking this repo's `main`). After any step that
-writes live state, run `chezmoi status` for the touched paths and sync
-the delta: `chezmoi re-add` when the live file wins, `chezmoi apply`
-when the source wins. The externals' 168h refresh cache goes stale, so
-verify against bitbucket `main` with `curl`, not the cache — and never
-`chezmoi apply` before a fix is pushed, or the stale cached copy
-reverts the live files.
 
 ## Model-call hook
 
