@@ -51,7 +51,9 @@ curl -fsSL https://raw.githubusercontent.com/markusreil/omo-herdr-ledger/main/in
 
 Overrides: `LEDGER_CLONE_DIR` (where to clone), `LEDGER_BRANCH`
 (default `main`). `-q`/`--quiet` silences the happy path (full
-output still on error). Other args are forwarded to `bin/sync.sh`.
+output still on error), unless `CHEZMOI_VERBOSE` is set to a truthy
+value (e.g. via `chezmoi apply -v`). Other args are forwarded to
+`bin/sync.sh`.
 
 Then `/reload` in omo and `/ledger` to toggle.
 

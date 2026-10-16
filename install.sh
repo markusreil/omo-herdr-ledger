@@ -27,6 +27,12 @@ for arg in "$@"; do
   esac
 done
 
+# chezmoi apply -v exports CHEZMOI_VERBOSE: full output wins over -q.
+case "${CHEZMOI_VERBOSE:-}" in
+  "" | 0 | false) ;;
+  *) QUIET=0 ;;
+esac
+
 if [ "$QUIET" = 0 ]; then
   exec "$CLONE_DIR/bin/sync.sh" "${ARGS[@]}"
 fi
