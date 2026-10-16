@@ -42,6 +42,19 @@ expandable session card, child-task cards, and machine-wide daily totals.
 
 Then `/reload` in omo and `/ledger` to toggle.
 
+## Sync
+
+This repo owns its `~/.omo` footprint and keeps it in sync with
+chezmoi (`~/.local/share/chezmoi`). The pane ships to `~/.omo` as
+chezmoi externals (see `.chezmoiexternal.toml` in the chezmoi source:
+raw-file entries tracking this repo's `main`). After any step that
+writes live state, run `chezmoi status` for the touched paths and sync
+the delta: `chezmoi re-add` when the live file wins, `chezmoi apply`
+when the source wins. The externals' 168h refresh cache goes stale, so
+verify against bitbucket `main` with `curl`, not the cache — and never
+`chezmoi apply` before a fix is pushed, or the stale cached copy
+reverts the live files.
+
 ## Model-call hook
 
 `extension.mjs` registers `pi.on('before_provider_request', …)` — fired on
