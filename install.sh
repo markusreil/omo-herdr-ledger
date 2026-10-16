@@ -18,4 +18,24 @@ else
   git clone -q --depth 1 --branch "$BRANCH" "$REPO" "$CLONE_DIR"
 fi
 
-exec "$CLONE_DIR/bin/sync.sh" "$@"
+QUIET=0
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    -q | --quiet) QUIET=1 ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+
+if [ "$QUIET" = 0 ]; then
+  exec "$CLONE_DIR/bin/sync.sh" "${ARGS[@]}"
+fi
+
+# Quiet: fully silent on success, full output on failure.
+out="$(mktemp)"; err="$(mktemp)"
+trap 'rm -f "$out" "$err"' EXIT INT TERM
+if "$CLONE_DIR/bin/sync.sh" "${ARGS[@]}" >"$out" 2>"$err"; then
+  exit 0
+fi
+cat "$out" "$err" >&2
+exit 1

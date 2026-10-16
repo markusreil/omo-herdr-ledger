@@ -50,7 +50,8 @@ curl -fsSL https://raw.githubusercontent.com/markusreil/omo-herdr-ledger/main/in
 ```
 
 Overrides: `LEDGER_CLONE_DIR` (where to clone), `LEDGER_BRANCH`
-(default `main`). Extra args are forwarded to `bin/sync.sh`.
+(default `main`). `-q`/`--quiet` silences the happy path (full
+output still on error). Other args are forwarded to `bin/sync.sh`.
 
 Then `/reload` in omo and `/ledger` to toggle.
 
