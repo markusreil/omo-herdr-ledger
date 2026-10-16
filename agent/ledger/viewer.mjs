@@ -237,6 +237,39 @@ async function readTasksDir(tasksDir) {
   }
   return tasks;
 }
+// Active goal for this session, if the goal extension has one.
+// Stored as `~/.omo/agent/sessions/<slug>/extensions/goal/<sessionId>.json`;
+// matched by full id or 8-char prefix. Best-effort: null when absent.
+async function activeGoal(sessionId) {
+  if (!sessionId) return null;
+  const base = join(homedir(), '.omo', 'agent', 'sessions');
+  let slugs;
+  try {
+    slugs = await readdir(base);
+  } catch {
+    return null;
+  }
+  const short = String(sessionId).slice(0, 8);
+  for (const slug of slugs) {
+    const dir = join(base, slug, 'extensions', 'goal');
+    let files;
+    try {
+      files = await readdir(dir);
+    } catch {
+      continue;
+    }
+    const match = files.find(f => f === `${sessionId}.json` || f.startsWith(`${short}`) && f.endsWith('.json'));
+    if (!match) continue;
+    try {
+      const raw = JSON.parse(await readFile(join(dir, match), 'utf8'));
+      const goal = raw?.goal ?? raw;
+      if (goal && (goal.status === 'active' || goal.objective)) return goal;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
 async function childTasks(tasksDir, sessionId) {
   if (!tasksDir || !sessionId) return [];
   const tasks = (await readTasksDir(tasksDir)).filter(task => task.parentSessionId === sessionId);
@@ -400,6 +433,7 @@ async function snapshot() {
   const completed = calls.filter(call => call.done === true);
   const groups = groupCalls(completed);
   const tasks = await childTasks(state.tasksDir, sessionId);
+  const goal = await activeGoal(sessionId);
   const machineTasks = await allTasks();
   const session = await sessionStats(state.sessionFile);
   const paneProject = (typeof session.cwd === 'string' && session.cwd ? session.cwd.split('/').filter(Boolean).pop() : null)
@@ -407,6 +441,7 @@ async function snapshot() {
   return {
     state,
     session,
+    goal,
     paneProject,
     inflight,
     groups: groups.slice(-5).reverse(),
@@ -464,6 +499,7 @@ function render(snap, colsOverride) {
     lines.push(kv('turns:', `${session.turns} ${dim('· tool calls:')} ${session.toolCalls}`, '    '));
     lines.push(kv('tokens:', `${dim('in=')}${fmtCount(session.in)} ${dim('out=')}${fmtCount(session.out)} ${dim('cacheR=')}${fmtCount(session.cacheRead)} ${dim('cacheW=')}${fmtCount(session.cacheWrite)}`, '    '));
     lines.push(kv('cost:', fmtCost(session.cost), '    '));
+    if (snap.goal?.objective) lines.push(kv('goal:', snap.goal.objective, '    '));
     });
   } else {
     // Summary lane sheds extras (tools, then in=) with the ladder;
@@ -475,6 +511,14 @@ function render(snap, colsOverride) {
       : `${dim('out=')}${fmtCount(session.out)}`);
     parts.push(fmtCost(session.cost));
     lines.push(`    ${parts.join(` ${dim('·')} `)}`);
+  }
+  if (snap.goal?.objective) {
+    const done = /complete|done|achieved/i.test(String(snap.goal.status ?? ''));
+    const mark = done ? good('✓ goal:') : warn('◉ goal:');
+    const goalText = budget > 0
+      ? cutTo(snap.goal.objective, Math.max(10, budget - 12), true)
+      : cutTo(snap.goal.objective, 80, true);
+    lines.push(`    ${mark} ${done ? good(goalText) : goalText}`);
   }
   index++;
 
