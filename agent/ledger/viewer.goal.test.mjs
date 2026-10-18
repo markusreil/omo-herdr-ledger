@@ -48,3 +48,12 @@ describe('session goal line', () => {
     assert.ok(!out.includes('goal:'), out.split('\n').slice(0, 5).join('\n'));
   });
 });
+
+describe('history zero-req display', () => {
+  it('shows req=0 (never req=?) when no requests were run', () => {
+    const out = runViewer({ sessionId: 'sess0000-zero', goal: null });
+    assert.ok(out.includes('History'), out);
+    assert.ok(out.includes('req=0'), out);
+    assert.ok(!out.includes('req=?'), out);
+  });
+});

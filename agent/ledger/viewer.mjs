@@ -757,12 +757,12 @@ function render(snap, colsOverride) {
   // time=/days=; req=, out= and cost always stay. req/cost columns grow
   // for wider data instead of letting it be cut at the lane edge.
   const statAggs = [...scoped, total, ...(snap.history ?? []).flatMap(b => [b, ...b.days])];
-  const reqW = Math.max(W.req, ...statAggs.map(a => textWidth(`req=${a.reqs === 0 ? '?' : a.reqs}`)));
+  const reqW = Math.max(W.req, ...statAggs.map(a => textWidth(`req=${a.reqs}`)));
   const costW = Math.max(W.cost, ...statAggs.map(a => textWidth(`· ${fmtCost(a.cost)}`)));
   const statCells = [reqW, ...(prof.in ? [W.in] : []), W.out, ...(prof.time ? [W.meter] : []), costW];
   const nameSlot = Math.max(NAME_MIN, (budget > 0 ? budget : 78) - W.cursor - laneW(statCells) - 1);
   const statFields = (agg, meter) => [
-    field('req=', agg.reqs === 0 ? '?' : String(agg.reqs), reqW),
+    field('req=', String(agg.reqs), reqW),
     ...(prof.in ? [field('in=', fmtCount(agg.in), W.in)] : []),
     field('out=', fmtCount(agg.out), W.out),
     ...(prof.time ? [field(meter.label, meter.value, W.meter)] : []),
