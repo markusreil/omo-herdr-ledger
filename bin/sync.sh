@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! command -v node >/dev/null 2>&1; then
+  echo "node not available; skipping checks, tests, and install." >&2
+  exit 0
+fi
+
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEST="${OMO_AGENT_DIR:-$HOME/.omo/agent}"
 
